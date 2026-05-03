@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For Titishka 💛</title>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+body{
+ margin:0;
+ font-family:'Poppins',sans-serif;
+ color:white;
+ text-align:center;
+ overflow-x:hidden;
+ transition:0.6s ease;
+}
+
+/* LOCK & SURPRISE */
+.screen{
+ position:fixed;
+ inset:0;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ flex-direction:column;
+ z-index:1000;
+}
+
+#lockScreen{background:#000;}
+#surpriseScreen{
+ display:none;
+ background:linear-gradient(135deg,#ffafbd,#ffc3a0);
+}
+
+/* CARDS */
+.day-card{
+ padding:16px;
+ border-radius:20px;
+ max-width:92%;
+ margin:15px auto;
+ background:rgba(255,255,255,0.15);
+ backdrop-filter:blur(12px);
+ box-shadow:0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* MEDIA */
+img{
+ width:100%;
+ border-radius:15px;
+ margin-top:10px;
+}
+
+button,input{
+ padding:10px;
+ border-radius:12px;
+ border:none;
+ width:80%;
+ max-width:300px;
+ margin:5px;
+}
+
+button{
+ background:#ff5e7e;
+ color:white;
+ font-weight:bold;
+}
+
+/* ANIMATION */
+@keyframes bounce{
+ 0%,100%{transform:translateY(0);}
+ 50%{transform:translateY(-10px);}
+}
+
+.giftBox{
+ font-size:50px;
+ cursor:pointer;
+ animation:bounce 1.5s infinite;
+}
+
+.teddy{
+ position:fixed;
+ bottom:10px;
+ right:10px;
+ font-size:45px;
+ animation:bounce 2s infinite;
+}
+
+canvas{
+ width:100%;
+ border-radius:10px;
+}
+
+/* FLOAT */
+.emoji{
+ position:fixed;
+ bottom:-20px;
+ animation:float 6s linear infinite;
+}
+@keyframes float{
+ to{transform:translateY(-110vh);}
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOCK -->
+<div id="lockScreen" class="screen">
+<h2>Enter Password 💛</h2>
+<input type="password" id="password">
+<button onclick="checkPassword()">Unlock</button>
+</div>
+
+<!-- SURPRISE -->
+<div id="surpriseScreen" class="screen">
+<h2>Hey Titishka 💛</h2>
+<p>Tap the gift 🎁</p>
+<div id="gift" style="font-size:60px;cursor:pointer;">🎁</div>
+</div>
+
+<!-- MAIN -->
+<div id="main" style="display:none">
+<div id="card"></div>
+</div>
+
+<div class="teddy">🧸</div>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+
+// 🔐 CONFIG
+const pass="titishka123";
+const YEAR=new Date().getFullYear();
+
+// 💾 SAVE SYSTEM
+let unlockedDays=JSON.parse(localStorage.getItem("unlockedDays")||"[]");
+
+// 🌈 BACKGROUNDS
+const backgrounds=[
+"linear-gradient(135deg,#ffafbd,#ffc3a0)",
+"linear-gradient(135deg,#a1c4fd,#c2e9fb)",
+"linear-gradient(135deg,#fbc2eb,#a6c1ee)",
+"linear-gradient(135deg,#fad0c4,#ffd1ff)",
+"linear-gradient(135deg,#ffecd2,#fcb69f)",
+"linear-gradient(135deg,#cfd9df,#e2ebf0)",
+"linear-gradient(135deg,#d4fc79,#96e6a1)",
+"linear-gradient(135deg,#84fab0,#8fd3f4)",
+"linear-gradient(135deg,#a6c0fe,#f68084)",
+"linear-gradient(135deg,#fddb92,#d1fdff)"
+];
+
+// 🔐 FRIENDLY CODES
+const secretCodes=[
+"bestie1","buddy2","smile3","fun4","chill5",
+"laugh6","happy7","vibes8","magic9","legend10"
+];
+
+// 📅 DAYS
+const days=[
+ {date:"May 3",img:"photo1.jpg",song:"song1.mp3",msg:"Hey Titishka! You make every day more fun 😄"},
+ {date:"May 4",img:"photo2.jpg",song:"song2.mp3",msg:"Stay awesome 😎"},
+ {date:"May 5",img:"photo3.jpg",song:"song3.mp3",msg:"Good vibes only ✨"},
+ {date:"May 6",img:"photo4.jpg",song:"song4.mp3",msg:"Friends like you are rare 🤝"},
+ {date:"May 7",img:"photo5.jpg",song:"song5.mp3",msg:"Keep smiling 😊"},
+ {date:"May 8",img:"photo6.jpg",song:"song6.mp3",msg:"You are amazing 🌟"},
+ {date:"May 9",img:"photo7.jpg",song:"song7.mp3",msg:"Great memories 🎉"},
+ {date:"May 10",img:"photo8.jpg",song:"song8.mp3",msg:"Always fun with you 😆"},
+ {date:"May 11",img:"photo9.jpg",song:"song9.mp3",msg:"Stay awesome 💫"},
+ {date:"May 12",img:"photo10.jpg",song:"song10.mp3",msg:"Big day tomorrow 🎂"}
+];
+
+// 🔐 PASSWORD
+window.checkPassword=function(){
+ const input=document.getElementById("password").value;
+ if(input===pass){
+  document.getElementById("lockScreen").style.display="none";
+  document.getElementById("surpriseScreen").style.display="flex";
+ }else alert("Wrong password 💔");
+};
+
+// 🎁 GIFT
+document.getElementById("gift").onclick=()=>{
+ confetti({particleCount:200});
+ setTimeout(()=>{
+  document.getElementById("surpriseScreen").style.display="none";
+  document.getElementById("main").style.display="block";
+  showDays();
+ },800);
+};
+
+// 📦 SHOW DAYS
+function showDays(){
+ let html="";
+
+ days.forEach((d,i)=>{
+  html+=`
+  <div class="day-card">
+   <h3>${d.date}</h3>
+   <div class="giftBox" onclick="openDay(${i})">🎁</div>
+  </div>`;
+ });
+
+ document.getElementById("card").innerHTML=html;
+}
+
+// 🎨 OPEN DAY
+window.openDay=function(i){
+
+ if(!unlockedDays.includes(i)){
+  let code=prompt("Enter secret code 💌");
+  if(code!==secretCodes[i]){
+   alert("Wrong code 💔");
+   return;
+  }
+  unlockedDays.push(i);
+  localStorage.setItem("unlockedDays",JSON.stringify(unlockedDays));
+  confetti({particleCount:200});
+ }
+
+ const d=days[i];
+
+ document.querySelectorAll(".day-card")[i].innerHTML=`
+ <h3>${d.date}</h3>
+ <img src="${d.img}">
+ <p>${d.msg}</p>
+ <audio controls src="${d.song}"></audio>
+ <canvas id="scratch${i}" height="100"></canvas>
+ `;
+
+ document.body.style.background=backgrounds[i];
+
+ setTimeout(()=>scratch(document.getElementById(`scratch${i}`)),100);
+};
+
+// ✏️ SCRATCH (MOBILE FIXED)
+function scratch(canvas){
+ const ctx=canvas.getContext("2d");
+
+ canvas.width=canvas.offsetWidth;
+
+ ctx.fillStyle="#bbb";
+ ctx.fillRect(0,0,canvas.width,100);
+ ctx.globalCompositeOperation="destination-out";
+
+ let draw=false;
+
+ function drawDot(x,y){
+  ctx.beginPath();
+  ctx.arc(x,y,15,0,Math.PI*2);
+  ctx.fill();
+ }
+
+ canvas.addEventListener("mousedown",()=>draw=true);
+ canvas.addEventListener("mouseup",()=>draw=false);
+ canvas.addEventListener("mousemove",(e)=>{
+  if(!draw) return;
+  let r=canvas.getBoundingClientRect();
+  drawDot(e.clientX-r.left,e.clientY-r.top);
+ });
+
+ canvas.addEventListener("touchstart",()=>draw=true);
+ canvas.addEventListener("touchend",()=>draw=false);
+ canvas.addEventListener("touchmove",(e)=>{
+  let r=canvas.getBoundingClientRect();
+  let t=e.touches[0];
+  drawDot(t.clientX-r.left,t.clientY-r.top);
+ });
+}
+
+// 🌈 FLOAT EMOJIS
+const emojis=["💛","🎉","✨","🧸","🌸"];
+setInterval(()=>{
+ let e=document.createElement("div");
+ e.className="emoji";
+ e.innerText=emojis[Math.floor(Math.random()*emojis.length)];
+ e.style.left=Math.random()*100+"vw";
+ document.body.appendChild(e);
+ setTimeout(()=>e.remove(),6000);
+},900);
+
+}); // DOM READY END
+
+</script>
+
+</body>
+</html>
